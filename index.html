@@ -21,7 +21,7 @@
         }
         h2 { color: #36445D; }
         input { 
-            width: 50%; 
+            width: 100%; 
             padding: 12px; 
             margin: 15px 0; 
             border: 2px solid #EDDEE0; 
@@ -82,7 +82,10 @@ function calcular() {
     else costoAnillo = 400;
     
     const costoMateriales = (totalPaginas * costoTonerPorPagina) + (hojasCapacidad * costoPapelPorHoja) + costoMicas + costoAnillo;
-    const precioFinal = Math.ceil((costoMateriales * 1.10 * 2) / 100) * 100;
+    
+    // Aplicamos 10% desgaste y luego 50% ganancia (multiplicamos por 1.50)
+    const costoConDesgaste = costoMateriales * 1.10;
+    const precioFinal = Math.ceil((costoConDesgaste * 1.50) / 100) * 100;
     
     document.getElementById('resultado').innerText = "$" + precioFinal;
 }
@@ -90,4 +93,3 @@ function calcular() {
 
 </body>
 </html>
-   
