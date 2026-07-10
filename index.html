@@ -4,42 +4,90 @@
     <meta charset="UTF-8">
     <title>Calculadora de Impresiones</title>
     <style>
-        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
-        .calc-box { border: 1px solid #ccc; padding: 20px; max-width: 400px; border-radius: 8px; }
-        input { width: 100%; padding: 8px; margin: 10px 0; }
-        button { background: #28a745; color: white; padding: 10px; border: none; width: 100%; cursor: pointer; }
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #EDDEE0; 
+            padding: 20px; 
+            display: flex; 
+            justify-content: center; 
+        }
+        .calc-box { 
+            background-color: #ffffff; 
+            padding: 30px; 
+            max-width: 400px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        h2 { color: #36445D; }
+        input { 
+            width: 100%; 
+            padding: 12px; 
+            margin: 15px 0; 
+            border: 2px solid #EDDEE0; 
+            border-radius: 10px; 
+            box-sizing: border-box; 
+        }
+        button { 
+            background-color: #03627E; 
+            color: white; 
+            padding: 12px; 
+            border: none; 
+            width: 100%; 
+            border-radius: 10px; 
+            cursor: pointer; 
+            font-size: 16px; 
+            transition: background 0.3s;
+        }
+        button:hover { background-color: #DC8079; }
+        #resultado { font-size: 24px; font-weight: bold; color: #03627E; }
+        .footer { margin-top: 20px; font-size: 14px; color: #36445D; }
     </style>
 </head>
 <body>
 
 <div class="calc-box">
-    <h2>Calculadora de Precios</h2>
-    <label>Número de páginas:</label>
+    <h2>Cotizador de Servicios</h2>
+    <label>Número total de páginas:</label>
     <input type="number" id="paginas" placeholder="Ej: 279">
     
-    <button onclick="calcular()">Calcular Precio</button>
+    <button onclick="calcular()">Calcular Presupuesto</button>
     
     <h3>Total a pagar: <span id="resultado">$0</span></h3>
+    
+    <div class="footer">
+        <p>¡Gracias por preferir nuestro servicio!</p>
+    </div>
 </div>
 
 <script>
 function calcular() {
-    // Variables base
-    const numPaginas = document.getElementById('paginas').value;
+    const totalPaginas = parseInt(document.getElementById('paginas').value);
+    if (!totalPaginas || totalPaginas <= 0) return;
+    
+    const hojasCapacidad = Math.ceil(totalPaginas / 2);
+    
+    // Valores
     const costoTonerPorPagina = 8.96;
     const costoPapelPorHoja = 8.00;
-    const costoTapas = 200;
-    const costoAnillo = 100;
+    const costoMicas = 303.32;
     
-    // Cálculos
-    const hojas = Math.ceil(numPaginas / 2);
-    const costoMateriales = (numPaginas * costoTonerPorPagina) + (hojas * costoPapelPorHoja) + costoTapas + costoAnillo;
-    const costoConDesgaste = costoMateriales * 1.10;
-    const precioFinal = costoConDesgaste * 2; // 100% ganancia
+    let costoAnillo = 0;
+    if (hojasCapacidad <= 80) costoAnillo = 139;
+    else if (hojasCapacidad <= 95) costoAnillo = 170;
+    else if (hojasCapacidad <= 105) costoAnillo = 208;
+    else if (hojasCapacidad <= 120) costoAnillo = 238;
+    else if (hojasCapacidad <= 140) costoAnillo = 294;
+    else if (hojasCapacidad <= 170) costoAnillo = 354;
+    else costoAnillo = 400;
     
-    document.getElementById('resultado').innerText = "$" + Math.round(precioFinal);
+    const costoMateriales = (totalPaginas * costoTonerPorPagina) + (hojasCapacidad * costoPapelPorHoja) + costoMicas + costoAnillo;
+    const precioFinal = Math.ceil((costoMateriales * 1.10 * 2) / 100) * 100;
+    
+    document.getElementById('resultado').innerText = "$" + precioFinal;
 }
 </script>
 
 </body>
 </html>
+   
