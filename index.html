@@ -2,58 +2,44 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Calculadora de Impresiones</title>
+    <title>Cotizador Profesional</title>
     <style>
-        body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            background-color: #EDDEE0; 
-            padding: 20px; 
-            display: flex; 
-            justify-content: center; 
-        }
-        .calc-box { 
-            background-color: #ffffff; 
-            padding: 30px; 
-            max-width: 400px; 
-            border-radius: 20px; 
-            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            text-align: center;
-        }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #EDDEE0; padding: 20px; display: flex; justify-content: center; }
+        .calc-box { background-color: #ffffff; padding: 30px; max-width: 400px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
         h2 { color: #36445D; }
-        input { 
-            width: 100%; 
-            padding: 12px; 
-            margin: 15px 0; 
-            border: 2px solid #EDDEE0; 
-            border-radius: 10px; 
-            box-sizing: border-box; 
-        }
-        button { 
-            background-color: #03627E; 
-            color: white; 
-            padding: 12px; 
-            border: none; 
-            width: 100%; 
-            border-radius: 10px; 
-            cursor: pointer; 
-            font-size: 16px; 
-            transition: background 0.3s;
-        }
+        label { display: block; margin-top: 10px; color: #36445D; font-weight: bold; text-align: left; }
+        input, select { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #EDDEE0; border-radius: 10px; box-sizing: border-box; }
+        button { background-color: #03627E; color: white; padding: 12px; border: none; width: 100%; border-radius: 10px; cursor: pointer; font-size: 16px; margin-top: 10px; }
         button:hover { background-color: #DC8079; }
-        #resultado { font-size: 24px; font-weight: bold; color: #03627E; }
-        .footer { margin-top: 20px; font-size: 14px; color: #36445D; }
+        #resultado { font-size: 28px; font-weight: bold; color: #03627E; }
+        #historial { margin-top: 20px; text-align: left; font-size: 14px; border-top: 1px solid #ccc; padding-top: 10px; }
+        .footer { margin-top: 20px; font-size: 14px; color: #36445D; font-style: italic; }
     </style>
 </head>
 <body>
 
 <div class="calc-box">
     <h2>Cotizador de Servicios</h2>
-    <label>Número total de páginas:</label>
-    <input type="number" id="paginas" placeholder="Ej: 279">
+    
+    <label>Número de páginas:</label>
+    <input type="number" id="paginas" placeholder="Ej: 70">
+    
+    <label>Tipo de impresión:</label>
+    <select id="tipoImpresion">
+        <option value="1.5">Blanco y Negro ($1.5 c/pág)</option>
+        <option value="15">Color ($15 c/pág)</option>
+    </select>
+    
+    <label><input type="checkbox" id="conAnillado" checked> Incluir Anillado</label>
     
     <button onclick="calcular()">Calcular Presupuesto</button>
     
-    <h3>Total a pagar: <span id="resultado">$0</span></h3>
+    <h3>Total: <span id="resultado">$0</span></h3>
+    
+    <div id="historial">
+        <h4>Consultas recientes:</h4>
+        <ul id="listaHistorial"></ul>
+    </div>
     
     <div class="footer">
         <p>¡Gracias por preferir nuestro servicio!</p>
@@ -63,31 +49,40 @@
 <script>
 function calcular() {
     const totalPaginas = parseInt(document.getElementById('paginas').value);
+    const costoTintaPorPagina = parseFloat(document.getElementById('tipoImpresion').value);
+    const conAnillado = document.getElementById('conAnillado').checked;
+    
     if (!totalPaginas || totalPaginas <= 0) return;
     
     const hojasCapacidad = Math.ceil(totalPaginas / 2);
-    
-    // Valores
-    const costoTonerPorPagina = 8.96;
     const costoPapelPorHoja = 8.00;
-    const costoMicas = 303.32;
+    const margenErrorPorPagina = 15.0;
     
+    const costoMicas = conAnillado ? 303.32 : 0;
     let costoAnillo = 0;
-    if (hojasCapacidad <= 80) costoAnillo = 139;
-    else if (hojasCapacidad <= 95) costoAnillo = 170;
-    else if (hojasCapacidad <= 105) costoAnillo = 208;
-    else if (hojasCapacidad <= 120) costoAnillo = 238;
-    else if (hojasCapacidad <= 140) costoAnillo = 294;
-    else if (hojasCapacidad <= 170) costoAnillo = 354;
-    else costoAnillo = 400;
     
-    const costoMateriales = (totalPaginas * costoTonerPorPagina) + (hojasCapacidad * costoPapelPorHoja) + costoMicas + costoAnillo;
+    if (conAnillado) {
+        if (hojasCapacidad <= 80) costoAnillo = 139;
+        else if (hojasCapacidad <= 95) costoAnillo = 170;
+        else if (hojasCapacidad <= 105) costoAnillo = 208;
+        else if (hojasCapacidad <= 120) costoAnillo = 238;
+        else if (hojasCapacidad <= 140) costoAnillo = 294;
+        else if (hojasCapacidad <= 170) costoAnillo = 354;
+        else costoAnillo = 400;
+    }
     
-    // Aplicamos 10% desgaste y luego 50% ganancia (multiplicamos por 1.50)
-    const costoConDesgaste = costoMateriales * 1.10;
-    const precioFinal = Math.ceil((costoConDesgaste * 1.50) / 100) * 100;
+    const costoDirecto = (totalPaginas * (costoTintaPorPagina + margenErrorPorPagina)) + 
+                         (hojasCapacidad * costoPapelPorHoja) + 
+                         costoMicas + costoAnillo;
+                         
+    const precioFinal = Math.ceil((costoDirecto * 1.50 * 1.19) / 100) * 100;
     
     document.getElementById('resultado').innerText = "$" + precioFinal;
+    
+    const lista = document.getElementById('listaHistorial');
+    const item = document.createElement('li');
+    item.innerText = `${totalPaginas} págs (${conAnillado ? 'Con' : 'Sin'} anillo): $${precioFinal}`;
+    lista.prepend(item);
 }
 </script>
 
