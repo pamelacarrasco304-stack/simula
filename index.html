@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Cotizador Profesional</title>
+    <title>Cotiza tu Impresión</title>
     <style>
         body { font-family: 'Segoe UI', sans-serif; background-color: #EDDEE0; padding: 20px; display: flex; justify-content: center; }
         .calc-box { background-color: #ffffff; padding: 30px; max-width: 400px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); text-align: center; }
@@ -11,67 +11,60 @@
         input, select { width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #EDDEE0; border-radius: 10px; box-sizing: border-box; }
         button { background-color: #03627E; color: white; padding: 12px; border: none; width: 100%; border-radius: 10px; cursor: pointer; font-size: 16px; margin-top: 10px; }
         button:hover { background-color: #DC8079; }
-        #resultado { font-size: 28px; font-weight: bold; color: #03627E; }
-        #historial { margin-top: 20px; text-align: left; font-size: 14px; border-top: 1px solid #ccc; padding-top: 10px; }
+        #resultado { font-size: 32px; font-weight: bold; color: #03627E; margin-top: 15px; display: block; }
     </style>
 </head>
 <body>
 
 <div class="calc-box">
-    <h2>Cotizador de Servicios</h2>
+    <h2>Cotiza tu Impresión</h2>
+    
     <label>Número de páginas:</label>
-    <input type="number" id="paginas" placeholder="Ej: 100">
+    <input type="number" id="paginas" placeholder="Ej: 50">
+    
     <label>Tipo de impresión:</label>
     <select id="tipoImpresion">
-        <option value="1.5">Blanco y Negro</option>
-        <option value="15">Color</option>
+        <option value="bn">Blanco y Negro</option>
+        <option value="color">Color</option>
     </select>
-    <label><input type="checkbox" id="conAnillado" checked> Incluir Anillado (Pack Especial)</label>
+    
+    <label><input type="checkbox" id="conAnillado"> Incluir Anillado</label>
+    
     <button onclick="calcular()">Calcular Presupuesto</button>
-    <h3>Total: <span id="resultado">$0</span></h3>
-    <div id="historial">
-        <h4>Consultas recientes:</h4>
-        <ul id="listaHistorial"></ul>
-    </div>
+    
+    <span id="resultado">$0</span>
 </div>
 
 <script>
 function calcular() {
     const totalPaginas = parseInt(document.getElementById('paginas').value);
-    const costoTinta = parseFloat(document.getElementById('tipoImpresion').value);
+    const esColor = document.getElementById('tipoImpresion').value === 'color';
     const conAnillado = document.getElementById('conAnillado').checked;
     
     if (!totalPaginas || totalPaginas <= 0) return;
-    
-    let precioFinal;
-    
-    // Lógica de Packs Anillados (Precios Fijos Objetivo)
-    if (conAnillado) {
-        if (totalPaginas >= 190) {
-            precioFinal = (costoTinta === 1.5) ? 5500 : 7000; // 1.500 de diferencia
-        } else if (totalPaginas >= 140) {
-            precioFinal = (costoTinta === 1.5) ? 4500 : 5500; // 1.000 de diferencia
-        } else if (totalPaginas >= 90) {
-            precioFinal = (costoTinta === 1.5) ? 4000 : 5000; // 1.000 de diferencia
-        } else {
-            // Si es anillado pero fuera de los rangos "pack", calculamos normal
-            precioFinal = calcularNormal(totalPaginas, costoTinta, conAnillado);
-        }
-    } else {
-        precioFinal = calcularNormal(totalPaginas, costoTinta, conAnillado);
-    }
-    
-    document.getElementById('resultado').innerText = "$" + precioFinal;
-    const lista = document.getElementById('listaHistorial');
-    lista.prepend(document.createElement('li')).innerText = `${totalPaginas} págs (${conAnillado ? 'Pack' : 'Suelto'}): $${precioFinal}`;
-}
 
-function calcularNormal(pags, tinta, anillado) {
-    const hojas = Math.ceil(pags / 2);
-    const costoMicas = anillado ? 303 : 0;
-    const costoAnillo = anillado ? 208 : 0;
-    const costoDirecto = (pags * (tinta + 15)) + (hojas * 8) + costoMicas + costoAnillo;
-    return Math.ceil((costoDirecto * 1.5 * 1.19) / 100) * 100;
+    let precioFinal;
+
+    if (!conAnillado) {
+        // Lógica sin anillado: Precio fijo por hoja
+        precioFinal = totalPaginas * (esColor ? 150 : 100);
+    } else {
+        // Lógica con anillado: Cálculo detallado
+        const hojas = Math.ceil(totalPaginas / 2);
+        const costoBase = (totalPaginas * 2) + (hojas * 10) + 300 + 303; // Tinta, Papel, Anillos, Micas
+        const costoConMargenes = costoBase * 1.15; // 5% error + 5% elec + 5% desgaste
+        const precioConGanancia = costoConMargenes * 2; // 100% ganancia
+        const precioConIva = precioConGanancia * 1.19;
+        
+        // Sumar plus por color
+        precioFinal = Math.ceil(precioConIva / 100) * 100;
+        if (esColor) precioFinal += 1000;
+        
+        // Aplicar mínimo de $3.500 para anillados
+        if (precioFinal < 3500) precioFinal = 3500;
+    }
+
+    document.getElementById('resultado').innerText = "$" + precioFinal;
 }
 </script>
 </body>
